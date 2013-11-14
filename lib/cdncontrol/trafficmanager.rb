@@ -120,7 +120,7 @@ module CDNControl
 
           # Make a thread-local connection to dyn, so that we open many
           # connections at once.
-          dyn_conn = DynectRest.new('etsy', @config['username'], @config['password'], @zone)
+          dyn_conn = DynectRest.new(@config['organization'], @config['username'], @config['password'], @zone)
           pool = dyn_conn.get(path)
 
           pool.each do |address|
