@@ -16,4 +16,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_runtime_dependency 'dynect_rest', '>= 0.4.3'
+  gem.add_runtime_dependency 'choice'
+  gem.add_runtime_dependency 'app_conf'
 end
