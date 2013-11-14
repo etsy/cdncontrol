@@ -22,7 +22,6 @@ Choice.options do
   header "cdncontrol -t TARGET --write"
   header "cdncontrol -t TARGET -p PROVIDER -w WEIGHT"
   header "cdncontrol -t TARGET -p PROVIDER -m MODE"
-  header "cdncontrol -t TARGET -a -p PROVIDER -c CNAME"
   header ""
   header "Specific options:"
 
