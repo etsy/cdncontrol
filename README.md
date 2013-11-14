@@ -106,7 +106,6 @@ Specific options:
     -m, --mode                       Set the serve mode of the provider (one of always,obey,remove,no)
     -c, --cname                      Target CNAME for new provider
     -s, --show                       Show current provider ratios
-    -a, --add                        Add a new provider
     -v, --verbose                    Show me in excrutiating detail what is happening
         --write                      Dump all weights out to JSON files
 ```
