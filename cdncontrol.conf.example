@@ -1,0 +1,26 @@
+organization: "myorganisation"
+username: "username"
+password: "password"
+output_path: "/var/www"
+cdncontrol_ui_hostname: "http://cdn.mydomain.com"
+
+
+valid_providers:
+    - provider1
+    - provider2
+    - provider3
+
+targets:
+    target1:
+        zone: myzone.com
+        nodes:
+          - 1.myzone.com
+          - 2.myzone.com
+          - 3.myzone.com
+          - 4.myzone.com
+        graph_url: "<your_graphite_cdn_metric_url>"
+        graph_color_key:
+           provider1: "#FF7400"
+           provider2: "#1240AB"
+           provider3: "#00CC00"
+           provider4: "#380470"

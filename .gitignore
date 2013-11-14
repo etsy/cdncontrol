@@ -1,0 +1,4 @@
+cdncontrol.conf
+.idea
+Gemfile.lock
+*.gem
