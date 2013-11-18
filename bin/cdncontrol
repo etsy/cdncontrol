@@ -1,91 +1,121 @@
 #!/usr/bin/env ruby
 
 require 'choice'
-require 'json'
 require 'yaml'
-require 'pp'
 require 'cdncontrol/trafficmanager'
 
-CONFIG = YAML.load_file("/usr/local/etc/cdncontrol.conf")
-
-# TODO: this should be dynamic
-VALID_PROVIDERS    = CONFIG["valid_providers"]
-VALID_MODES        = CONFIG["valid_modes"] || [ "always", "obey", "remove", "no" ]
-OUTPUT_PATH        = CONFIG["output_path"] || "/tmp"
-VALID_TARGETS   = CONFIG["targets"].keys
-options = { show: false, add: false, verbose: false }
-
-Choice.options do
-  header "Please specify the command in one of the following formats:"
-  header ""
-  header "cdncontrol -t TARGET --show"
-  header "cdncontrol -t TARGET --write"
-  header "cdncontrol -t TARGET -p PROVIDER -w WEIGHT"
-  header "cdncontrol -t TARGET -p PROVIDER -m MODE"
-  header ""
-  header "Specific options:"
-
-  option :target, :required => false do
-    short '-t'
-    long  '--target'
-    desc  "The configuration to work on (one of #{VALID_TARGETS.join(",")})"
-    validate  /^(#{VALID_TARGETS.join("|")})$/
-  end
-
-  option :provider, :required => false do
-    short '-p'
-    long  '--provider'
-    desc  "Provider to modify (one of #{VALID_PROVIDERS.join(",")})"
-    validate  /^(#{VALID_PROVIDERS.join("|")})$/
-  end
-
-  option :weight, :required => false do
-    short '-w'
-    long  '--weight'
-    desc  'Weight of traffic to send to provider (value between 1 and 15)'
-    validate /^([1-9]|1[0-5])$/
-  end
-
-  option :mode, :required => false do
-    short '-m'
-    long  '--mode'
-    desc  "Set the serve mode of the provider (one of #{VALID_MODES.join(",")})"
-    validate  /^(#{VALID_MODES.join("|")})$/
-  end
-
-  option :show, :required => false do
-    short '-s'
-    long  '--show'
-    desc  'Show current provider ratios'
-  end
-
-  option :verbose, :required => false do
-    short '-v'
-    long  '--verbose'
-    desc  'Show me in excrutiating detail what is happening'
-  end
-
-
-  option :write, :required => false do
-    long  '--write'
-    desc  'Dump all weights out to JSON files for the dashboard'
-  end
+def load_config(conf_file)
+  abort("Config file '#{conf_file}' not found!") unless File.exists? conf_file
+  return YAML.load_file(conf_file)
 end
 
-options[:provider] = Choice.choices[:provider] unless !Choice.choices[:provider]
-options[:target] = Choice.choices[:target] unless !Choice.choices[:target]
-options[:mode] = Choice.choices[:mode] unless !Choice.choices[:mode]
-options[:weight] = Choice.choices[:weight] unless !Choice.choices[:weight]
-options[:show] = Choice.choices[:show] unless !Choice.choices[:show]
-options[:verbose] = Choice.choices[:verbose] unless !Choice.choices[:verbose]
-options[:write] = Choice.choices[:write] unless !Choice.choices[:write]
-
-unless (options.has_key?(:target) && options[:show]) ||
-    (options.has_key?(:target) && options.has_key?(:write)) ||
-    (options.has_key?(:target) && options.has_key?(:provider) && options.has_key?(:weight)) ||
-    (options.has_key?(:target) && options.has_key?(:provider) && options.has_key?(:mode))
-  Choice.help
+def validate_option(label, option, valid_options)
+  valid_choices = valid_options.join(', ')
+  return if option.nil?
+  abort "Invalid #{label} '#{option}' - choices are :#{valid_choices}" unless valid_options.include? option
 end
+
+def validate_options(config, options)
+  validate_option('provider', options[:provider], config.fetch('valid_providers', []))
+  validate_option('mode', options[:mode], config.fetch('valid_modes', ["always", "obey", "remove", "no"]))
+  validate_option('target', options[:target], config.fetch('targets', {}).keys)
+
+  unless (options[:show] ||
+          options[:write] ||
+          (options[:provider] && options[:weight]) ||
+          (options[:provider] && options[:mode]))
+    Choice.help
+  end
+  return options
+end
+
+def parse_options
+  Choice.options do
+    header "Please specify the command in one of the following formats:"
+    header ""
+    header "cdncontrol -t TARGET --show"
+    header "cdncontrol -t TARGET --write"
+    header "cdncontrol -t TARGET -p PROVIDER -w WEIGHT"
+    header "cdncontrol -t TARGET -p PROVIDER -m MODE"
+    header ""
+    header "Specific options:"
+
+    option :target, :required => true do
+      short '-t'
+      long  '--target'
+      desc  "The configuration to work on"
+    end
+
+    option :provider do
+      short '-p'
+      long  '--provider'
+      desc  "Provider to modify"
+    end
+
+    option :weight do
+      short '-w'
+      long  '--weight'
+      desc  'Weight of traffic to send to provider (value between 1 and 15)'
+      validate /^([1-9]|1[0-5])$/
+    end
+
+    option :mode do
+      short '-m'
+      long  '--mode'
+      desc  "Set the serve mode of the provider"
+    end
+
+    option :show do
+      short '-s'
+      long  '--show'
+      desc  'Show current provider ratios'
+    end
+
+    option :config do
+      short  '-c'
+      long  '--config'
+      desc  'Path to config file'
+      default '/usr/local/etc/cdncontrol.conf'
+    end
+
+    option :output_dir do
+      short  '-o'
+      long  '--output-dir'
+      desc  'Path to output directory'
+      default '/tmp'
+    end
+
+    option :verbose do
+      short '-v'
+      long  '--verbose'
+      desc  'Show me in excrutiating detail what is happening'
+    end
+
+    option :write do
+      long  '--write'
+      desc  'Dump all weights out to JSON files for the dashboard'
+    end
+  end
+
+  options = {
+    :provider  => Choice['provider'],
+    :target    => Choice['target'],
+    :mode      => Choice['mode'],
+    :weight    => Choice['weight'],
+    :show      => Choice['show'],
+    :verbose   => Choice['verbose'],
+    :write     => Choice['write'],
+    :config    => Choice['config'],
+    :output_dir  => Choice['output_dir'],
+  }
+  return options
+end
+
+
+# parse options and validate them
+options = parse_options
+config = load_config(options[:config])
+validate_options(config, options)
 
 # trap SIGINT and return a clean exit message rather than stack trace
 Signal.trap('INT') {
@@ -93,36 +123,31 @@ Signal.trap('INT') {
   exit
 }
 
-## action starts here
+# action starts here
 
-target = CONFIG['targets'][options[:target]]
+target = config['targets'][options[:target]]
 
-tm = CDNControl::TrafficManager.new(CONFIG,target, options[:verbose])
+tm = CDNControl::TrafficManager.new(config, target, options[:verbose])
 
-if options[:show]
-  tm.show_balance
-end
+tm.show_balance if options[:show]
 
-if options[:write]
-  tm.dump_weights(options[:target],OUTPUT_PATH)
-end
+tm.dump_weights(options[:target], options[:output_dir]) if options[:write]
 
-if options.has_key?(:provider) && options.has_key?(:weight)
+if options[:provider] && options[:weight]
   tm.show_balance("CURRENT LIVE WEIGHTS")
   tm.set_weight(options[:provider], options[:weight])
   tm.show_balance("NODE WEIGHTS AFTER CHANGE")
-  tm.dump_weights(options[:target],OUTPUT_PATH)
-
+  tm.dump_weights(options[:target], options[:output_dir])
 end
 
-if options.has_key?(:provider) && options.has_key?(:mode)
+if options[:provider] && options[:mode]
   tm.show_balance("CURRENT SERVE MODES AND WEIGHTS")
   tm.set_serve_mode(options[:provider], options[:mode])
   tm.show_balance("NODE SERVE MODES AFTER CHANGE")
-  tm.dump_weights(options[:target],OUTPUT_PATH)
+  tm.dump_weights(options[:target], options[:output_dir])
 end
 
 # display a nag if configured
-if options[:show] != true && CONFIG['targets'][options[:target]].has_key?('nag')
-  puts "** NOTE: #{CONFIG['targets'][options[:target]]['nag']}"
+if !options[:show] && target.has_key?('nag')
+  puts "** NOTE: #{target['nag']}"
 end
