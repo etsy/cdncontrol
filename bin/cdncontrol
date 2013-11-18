@@ -112,42 +112,42 @@ def parse_options
 end
 
 
-if __FILE__ == $0
-  # parse options and validate them
-  options = parse_options
-  config = load_config(options[:config])
-  validate_options(config, options)
+# parse options and validate them
+options = parse_options
+config = load_config(options[:config])
+validate_options(config, options)
 
-  # trap SIGINT and return a clean exit message rather than stack trace
-  Signal.trap('INT') {
-    printf "\nAborting!\n"
-    exit
-  }
+# trap SIGINT and return a clean exit message rather than stack trace
+Signal.trap('INT') {
+  printf "\nAborting!\n"
+  exit
+}
 
-  target = config['targets'][options[:target]]
+# action starts here
 
-  tm = CDNControl::TrafficManager.new(config, target, options[:verbose])
+target = config['targets'][options[:target]]
 
-  tm.show_balance if options[:show]
+tm = CDNControl::TrafficManager.new(config, target, options[:verbose])
 
-  tm.dump_weights(options[:target], options[:output_dir]) if options[:write]
+tm.show_balance if options[:show]
 
-  if options[:provider] && options[:weight]
-    tm.show_balance("CURRENT LIVE WEIGHTS")
-    tm.set_weight(options[:provider], options[:weight])
-    tm.show_balance("NODE WEIGHTS AFTER CHANGE")
-    tm.dump_weights(options[:target], options[:output_dir])
-  end
+tm.dump_weights(options[:target], options[:output_dir]) if options[:write]
 
-  if options[:provider] && options[:mode]
-    tm.show_balance("CURRENT SERVE MODES AND WEIGHTS")
-    tm.set_serve_mode(options[:provider], options[:mode])
-    tm.show_balance("NODE SERVE MODES AFTER CHANGE")
-    tm.dump_weights(options[:target], options[:output_dir])
-  end
+if options[:provider] && options[:weight]
+  tm.show_balance("CURRENT LIVE WEIGHTS")
+  tm.set_weight(options[:provider], options[:weight])
+  tm.show_balance("NODE WEIGHTS AFTER CHANGE")
+  tm.dump_weights(options[:target], options[:output_dir])
+end
 
-  # display a nag if configured
-  if !options[:show] && target.has_key?('nag')
-    puts "** NOTE: #{target['nag']}"
-  end
+if options[:provider] && options[:mode]
+  tm.show_balance("CURRENT SERVE MODES AND WEIGHTS")
+  tm.set_serve_mode(options[:provider], options[:mode])
+  tm.show_balance("NODE SERVE MODES AFTER CHANGE")
+  tm.dump_weights(options[:target], options[:output_dir])
+end
+
+# display a nag if configured
+if !options[:show] && target.has_key?('nag')
+  puts "** NOTE: #{target['nag']}"
 end
