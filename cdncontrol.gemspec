@@ -2,12 +2,13 @@ $:.push File.expand_path('../lib', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.name          = 'cdn_control'
-  gem.version       = '0.0.9'
+  gem.version       = '0.0.10'
   gem.authors       = ["Jon Cowie", "Marcus Barczak"]
   gem.email         = 'jonlives@gmail.com'
   gem.homepage      = 'https://github.com/etsy/cdncontrol'
   gem.summary       = "Tool for managing multiple CDN balances on Dyn's GSLB"
   gem.description   = "Tool for managing multiple CDN balances on Dyn's GSLB"
+  gem.license = 'MIT'
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
