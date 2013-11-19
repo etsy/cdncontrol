@@ -82,7 +82,7 @@ def parse_options
       short  '-o'
       long  '--output-dir'
       desc  'Path to output directory'
-      default '/tmp'
+      default '/var/www'
     end
 
     option :verbose do
