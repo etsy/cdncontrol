@@ -1,6 +1,7 @@
 require 'app_conf'
 require 'json'
 require 'dynect_rest'
+require 'socket'
 
 module CDNControl
   class TrafficManager
@@ -52,6 +53,41 @@ module CDNControl
         rescue
           puts "** Couldn't reach the eventinator server, not eventinating"
         end
+      end
+    end
+
+    # Same as we do for eventinator, and for say spork, tell IRC when we
+    # change things. All this brutally stolen from knife-spork's irccat
+    # plugin. It just seemed a shame not to use it.
+    def ircinate(msg)
+      if @config['irccat']
+        irccat = @config['irccat']
+
+        if !@user.nil?
+          msg += " by #{@user}"
+        else
+          user = ENV['SUDO_USER'] || ENV['USER']
+          msg += " by #{user}"
+        end
+
+
+        port = 12345
+        port = irccat.port if irccat.port
+
+        channels = [ irccat.channel || irccat.channels ].flatten
+        channels.each do |channel|
+          begin
+            # Write the message using a TCP Socket
+            socket = TCPSocket.open(irccat.server, port)
+            socket.write("#{channel} #{msg}")
+          rescue Exception => e
+            ui.error 'Failed to post message with irccat.'
+            ui.error e.to_s
+          ensure
+            socket.close unless socket.nil?
+          end
+        end
+
       end
     end
 
@@ -188,6 +224,7 @@ module CDNControl
           @dyn.put(path, { "weight" => weight })
 
           eventinate("modified weight of #{provider} to #{weight} for '#{node}'")
+          ircinate("modified weight of #{provider} to #{weight} for '#{node}'")
         end
       end
 
@@ -220,6 +257,7 @@ module CDNControl
           @dyn.put(path, { "serve_mode" => mode })
 
           eventinate("modified serve_mode of #{provider} from '#{old_mode}' to '#{mode}' on #{node}")
+          ircinate("modified serve_mode of #{provider} from '#{old_mode}' to '#{mode}' on #{node}")
         end
       end
 
