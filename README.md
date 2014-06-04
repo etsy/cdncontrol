@@ -54,6 +54,9 @@ targets:
            provider3: "#00CC00"
            provider4: "#380470"
 
+irccat:
+    server: irccat.example.org
+    channels: [ '#announce', '#noops' ]
 ```
 
 #### Organization
@@ -82,7 +85,9 @@ The `targets` section of the config file lists the different site configurations
 * **graph_url** (optional): If you're using the CDNControlUI web interface to this tool, this option lets you specify a graph_url to be displayed on the page for this target.
 * **graph_color_key** (optional): If you're using the CDNControlUI web interface to this tool, this option lets you specify a color key to be displayed above the graph (to indicate which CDN is which color, for example).
 
+###IRCCat
 
+You can make the output go to IRC via `irccat` by providing an irccat instance by hostname/IP, optional port and channel/channels to announce in to.
 
 CDNControl Usage
 ================
