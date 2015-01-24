@@ -95,6 +95,11 @@ def parse_options
       long  '--write'
       desc  'Dump all weights out to JSON files for the dashboard'
     end
+
+    option :http_proxy do
+      long '--http_proxy'
+      desc 'Connect through an http proxy'
+    end
   end
 
   options = {
@@ -107,6 +112,7 @@ def parse_options
     :write     => Choice['write'],
     :config    => Choice['config'],
     :output_dir  => Choice['output_dir'],
+    :http_proxy  => Choice['http_proxy'],
   }
   return options
 end
