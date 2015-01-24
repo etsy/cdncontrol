@@ -24,6 +24,10 @@ module CDNControl
         require 'eventinator-client'
       end
 
+      if @config['http_proxy']
+        RestClient.proxy = @config['http_proxy']
+      end
+
       # connect to API
       puts "** connecting to dynect API"
       @dyn     = DynectRest.new(@config['organization'], @config['username'], @config['password'], @zone)
