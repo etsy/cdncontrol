@@ -59,22 +59,22 @@ targets:
 #### Organization
 The `organization` directive specifies the customer name you use when logging into the DynECT portal
 
-####Username
+#### Username
 The `username` directive specifies the username to use when authenticating to the Dyn API.
 
-####Password
+#### Password
 The `password` directive specifies the password to use when authenticating to the Dyn API.
 
-####Output Path
+#### Output Path
 The `output_path` directive specifies where cdncontrol should dump JSON containing the CDN balances.
 
-####CDNControl UI Hostname (Optional)
+#### CDNControl UI Hostname (Optional)
 The `cdncontrol_ui_hostname` directive specifies the hostname where the CDNControlUI web application can be reached, if you're using it.
 
-####Valid Providers
+#### Valid Providers
 The `valid_providers` section specifies the valid CDN providers which may be configured with this tool. This corresponds to the names of the global pools you have configured on the Dyn GSLB platform.
 
-####Targets
+#### Targets
 The `targets` section of the config file lists the different site configurations you want to use cdncontrol to manage. The following are the parameters which can be used to configure a target (in this case, we're looking at the parameters of *target1* above:
 
 * **zone**: This is the name used to configure the site in Dyn's GSLB platform. In the DynECT web interface, this is the top-level site from which all of your nodes are configured
